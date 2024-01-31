@@ -1,7 +1,6 @@
 import express, { RequestHandler } from "express";
 import mongoose from "mongoose";
 import 'dotenv/config';
-import session from "express-session";
 import passport from "passport";
 
 import { dishRouter } from "./routes/dish";
@@ -25,17 +24,7 @@ const PORT = 5000;
 const server = express();
 
 server.use(express.json());
-
-server.use(session({
-  name: 'session-id',
-  secret: process.env.COOKIE_SECRET_KEY as string,
-  saveUninitialized: false,
-  resave: false,
-  cookie: { secure: true }
-}));
-
 server.use(passport.initialize());
-server.use(passport.session());
 
 const auth: RequestHandler = (req, res, next) => {
     console.log(req.user);

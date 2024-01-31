@@ -29,11 +29,7 @@ userRouter.post('/login', passport.authenticate('local'), (req, res) => {
 });
 
 userRouter.get('/logout', (req, res, next) => {
-  if (req.session) {
-    req.session.destroy(err => {
-        console.log(err);
-        
-    });
+  if (req?.session) {
     res.clearCookie('session-id');
     res.redirect('/');
   }
