@@ -26,6 +26,7 @@ const server = express();
 
 server.use(express.json());
 server.use(passport.initialize());
+server.use(passport.session());
 
 server.use('/users', userRouter);
 server.use('/dishes', dishRouter);
