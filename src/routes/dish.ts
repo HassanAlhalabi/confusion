@@ -2,7 +2,7 @@ import { Router } from "express";
 import Dish from "../models/dish";
 import { StatusCodes } from "http-status-codes";
 import { MongooseError } from "mongoose";
-import { verifyUser } from "../authenticate";
+import { verifyAdmin, verifyUser } from "../authenticate";
 
 export const dishRouter = Router();
 
@@ -18,7 +18,7 @@ dishRouter
       return res.json({ success: false });
     }
   })
-  .post(verifyUser, async (req, res) => {
+  .post(verifyUser,verifyAdmin, async (req, res) => {
     try {
       const newDish = req.body;
       await Dish.create(newDish);
@@ -30,7 +30,7 @@ dishRouter
       return res.json({ success: false, error: mongooseError.message});
     }
   })
-  .put(verifyUser, async (req, res) => {
+  .put(verifyUser,verifyAdmin, async (req, res) => {
     res.statusCode = StatusCodes.FORBIDDEN;
     return res.end("PUT operation not supported for dishes");
   })
@@ -52,7 +52,7 @@ dishRouter
       return res.json({ success: false, error: mongooseError.message });
     }
   })
-  .put(verifyUser, async (req, res) => {
+  .put(verifyUser,verifyAdmin, async (req, res) => {
     res.statusCode = StatusCodes.FORBIDDEN;
     return res.end("PUT operation not supported for dishes");
   })
@@ -92,11 +92,11 @@ dishRouter
       return res.json({ success: false, error: mongooseError.message });
     }
   })
-  .put(verifyUser, async (req, res) => {
+  .put(verifyUser,verifyAdmin, async (req, res) => {
     res.statusCode = StatusCodes.FORBIDDEN;
     return res.end("PUT operation not supported for comments");
   })
-  .delete(verifyUser, async (req, res) => {
+  .delete(verifyUser,verifyAdmin, async (req, res) => {
     res.statusCode = StatusCodes.FORBIDDEN;
     return res.end("DELETE operation not supported for Comments");
   });
@@ -127,36 +127,43 @@ dishRouter
     }
   })
   .put(verifyUser, async (req, res, next) => {
-   Dish.findById(req.params.dishId)
+   Dish.findById(req.params.dishId).populate('comments.author')
     .then((dish) => {
-        if (dish != null && dish.comments.id(req.params.commentId) != null) {
-            if (req.body.rating) {
-              // @ts-ignore
-                dish.comments.id(req.params.commentId).rating = req.body.rating;
-            }
-            if (req.body.comment) {
-              // @ts-ignore
-                dish.comments.id(req.params.commentId).comment = req.body.comment;                
-            }
-        dish.save()
-        .then((dish) => {
-            Dish.findById(dish._id)
-            .populate('comments.author')
-            .then((dish) => {
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'application/json');
-                res.json(dish);  
-            })              
-        }, (err) => next(err));
-        }
-        else if (dish == null) {
-            res.statusCode = 404;
-            return next(new Error('Dish ' + req.params.dishId + ' not found'));
-        }
-        else {
-            res.statusCode = 404;
-            return next(new Error('Comment ' + req.params.commentId + ' not found'))            
-        }
+      if (dish != null && dish.comments.id(req.params.commentId) != null) {
+          // Check if the dish is users dish
+                    // @ts-ignore
+          console.log(dish.comments.id(req.params.commentId));        
+          // @ts-ignore
+          if(dish.comments.id(req.params.commentId).author !== req.user.username) {
+            return next(new Error('Not Your Comment'))
+          }
+          if (req.body.rating) {
+            // @ts-ignore
+              dish.comments.id(req.params.commentId).rating = req.body.rating;
+          }
+          if (req.body.comment) {
+            // @ts-ignore
+              dish.comments.id(req.params.commentId).comment = req.body.comment;                
+          }
+      dish.save()
+      .then((dish) => {
+          Dish.findById(dish._id)
+          .populate('comments.author')
+          .then((dish) => {
+              res.statusCode = 200;
+              res.setHeader('Content-Type', 'application/json');
+              res.json(dish);  
+          })              
+      }, (err) => next(err));
+      }
+      else if (dish == null) {
+          res.statusCode = 404;
+          return next(new Error('Dish ' + req.params.dishId + ' not found'));
+      }
+      else {
+          res.statusCode = 404;
+          return next(new Error('Comment ' + req.params.commentId + ' not found'))            
+      }
     }, (err) => next(err))
     .catch((err) => next(err));
   })
@@ -164,7 +171,11 @@ dishRouter
     Dish.findById(req.params.dishId)
     .then((dish) => {
         if (dish != null && dish.comments.id(req.params.commentId) != null) {
-
+          // Check if the dish is users dish
+          // @ts-ignore
+          if(dish.comments.id(req.params.commentId).author !== req.user.username) {
+            return next(new Error('Not Your Comment'))
+          }
           // @ts-ignore
             dish.comments.id(req.params.commentId).remove();
             dish.save()

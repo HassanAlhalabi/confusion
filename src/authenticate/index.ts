@@ -4,6 +4,8 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import passport from 'passport';
 import { config } from '../../config';
 import { ObjectId } from 'mongoose';
+import { RequestHandler } from 'express';
+import { StatusCodes } from 'http-status-codes';
 const User = require('../models/user')
 
 passport.use(new LocalStrategy(async (username, password, done) => {
@@ -48,3 +50,13 @@ export const jwtPassport = passport.use(new JWTStrategy({
 export const localAuth = passport.authenticate('local', { session: false });
 
 export const verifyUser = passport.authenticate('jwt', {session: false});
+
+export const verifyAdmin: RequestHandler = async (req, res, next) => {
+    // @ts-ignore
+    if(req.user?.admin) {
+        return next()
+    }
+    res.statusCode = StatusCodes.UNAUTHORIZED
+    res.json({ err: "You don't have permissions to do this action" });
+    return next()
+}

@@ -1,7 +1,9 @@
+import { verifyUser } from './../authenticate/index';
 import { Router } from "express";
 import { StatusCodes } from "http-status-codes";
 import Leader from "../models/leaders";
 import { MongooseError } from "mongoose";
+import { verifyAdmin } from "../authenticate";
 
 export const leadersRouter = Router();
 
@@ -17,7 +19,7 @@ leadersRouter
       return res.json({ success: false });
     }
   })
-  .post(async (req, res) => {
+  .post(verifyUser, verifyAdmin,async (req, res) => {
     try {
       const newLeader = req.body;
       await Leader.create(newLeader);
@@ -29,11 +31,11 @@ leadersRouter
       return res.json({ success: false, message: mongooseError.message });
     }
   })
-  .put(async (req, res) => {
+  .put(verifyUser, verifyAdmin,async (req, res) => {
     res.statusCode = StatusCodes.FORBIDDEN;
     return res.end("PUT operation not supported");
   })
-  .delete(async (req, res) => {
+  .delete(verifyUser, verifyAdmin,async (req, res) => {
     res.statusCode = StatusCodes.FORBIDDEN;
     return res.end("DELETE operation not supported");
   });
@@ -50,11 +52,11 @@ leadersRouter
       return res.json({ success: false });
     }
   })
-  .post(async (req, res) => {
+  .post(verifyUser, verifyAdmin,async (req, res) => {
        res.statusCode = StatusCodes.FORBIDDEN;
     return res.end("POST operation not supported");
   })
-  .put(async (req, res) => {
+  .put(verifyUser, verifyAdmin,async (req, res) => {
     try {
       await Leader.findByIdAndUpdate(req.params.leaderId,req.body);
       res.statusCode = StatusCodes.NO_CONTENT;
@@ -65,7 +67,7 @@ leadersRouter
       return res.json({ success: false, message: mongooseError.message });
     }
   })
-  .delete(async (req, res) => {
+  .delete(verifyUser, verifyAdmin,async (req, res) => {
     try {
       await Leader.findByIdAndDelete(req.params.leaderId)
       res.statusCode = StatusCodes.NO_CONTENT;

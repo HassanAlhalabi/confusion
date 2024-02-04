@@ -2,6 +2,7 @@ import { Router } from "express";
 import { StatusCodes } from "http-status-codes";
 import Promotion from "../models/promotions";
 import { MongooseError } from "mongoose";
+import { verifyAdmin, verifyUser } from "../authenticate";
 
 export const promotionsRouter = Router();
 
@@ -17,7 +18,7 @@ promotionsRouter
       return res.json({ success: false });
     }
   })
-  .post(async (req, res) => {
+  .post(verifyUser, verifyAdmin, async (req, res) => {
     try {
       const newPromotion = req.body;
       await Promotion.create(newPromotion);
@@ -29,11 +30,11 @@ promotionsRouter
       return res.json({ success: false, message: mongooseError.message });
     }
   })
-  .put(async (req, res) => {
+  .put(verifyUser, verifyAdmin, async (req, res) => {
     res.statusCode = StatusCodes.FORBIDDEN;
     return res.end("PUT operation not supported");
   })
-  .delete(async (req, res) => {
+  .delete(verifyUser, verifyAdmin, async (req, res) => {
     res.statusCode = StatusCodes.FORBIDDEN;
     return res.end("DELETE operation not supported");
   });
@@ -50,11 +51,11 @@ promotionsRouter
       return res.json({ success: false });
     }
   })
-  .post(async (req, res) => {
+  .post(verifyUser, verifyAdmin, async (req, res) => {
        res.statusCode = StatusCodes.FORBIDDEN;
     return res.end("POST operation not supported");
   })
-  .put(async (req, res) => {
+  .put(verifyUser, verifyAdmin, async (req, res) => {
     try {
       await Promotion.findByIdAndUpdate(req.params.promotionId,req.body);
       res.statusCode = StatusCodes.NO_CONTENT;
@@ -65,7 +66,7 @@ promotionsRouter
       return res.json({ success: false, message: mongooseError.message });
     }
   })
-  .delete(async (req, res) => {
+  .delete(verifyUser, verifyAdmin, async (req, res) => {
     try {
       await Promotion.findByIdAndDelete(req.params.promotionId)
       res.statusCode = StatusCodes.NO_CONTENT;

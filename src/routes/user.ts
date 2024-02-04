@@ -1,9 +1,22 @@
 import { Router } from "express";
 import passport from "passport";
-import { getToken, localAuth } from "../authenticate";
+import { getToken, localAuth, verifyAdmin, verifyUser } from "../authenticate";
+import { StatusCodes } from "http-status-codes";
 const User = require('../models/user');
 
 export const userRouter = Router()
+
+
+userRouter.get('/',verifyUser, verifyAdmin, localAuth , async (req, res) => {
+    try {
+      const users = await User.find({})
+      res.statusCode = StatusCodes.OK;
+      return res.json({ success: true, data: users });
+    } catch (error) {
+      res.statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
+      return res.json({ success: false });
+    }
+})
 
 userRouter.post('/signup', async (req, res, next) => {
   User.register(new User({ username: req.body.username }),
