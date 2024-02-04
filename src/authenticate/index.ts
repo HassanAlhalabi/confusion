@@ -1,9 +1,22 @@
 import { sign } from 'jsonwebtoken'
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { ExtractJwt, Strategy as JWTStrategy } from 'passport-jwt';
+import { Strategy as LocalStrategy } from 'passport-local';
 import passport from 'passport';
-
 import { config } from '../../config';
 import { ObjectId } from 'mongoose';
+const User = require('../models/user')
+
+passport.use(new LocalStrategy(async (username, password, done) => {
+    try {
+        const user = await User.findOne({ username });
+        if (!user) { return done(null, false); }
+        return done(null, user);
+    } catch(error) {
+        if (error) { return done(error); }
+    }
+}));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 export const getToken = function(user: {_id: ObjectId}) {
     return sign(user, config.secretKey,
@@ -13,7 +26,7 @@ export const getToken = function(user: {_id: ObjectId}) {
 const jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 const secretOrKey = config.secretKey;
 
-export const jwtPassport = passport.use(new Strategy({
+export const jwtPassport = passport.use(new JWTStrategy({
     jwtFromRequest,
     secretOrKey
 },
@@ -32,5 +45,7 @@ export const jwtPassport = passport.use(new Strategy({
             }
         });
     }));
+
+export const localAuth = passport.authenticate('local', { session: false });
 
 export const verifyUser = passport.authenticate('jwt', {session: false});

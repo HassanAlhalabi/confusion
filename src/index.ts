@@ -8,7 +8,6 @@ import { promotionsRouter } from "./routes/promotions";
 import { leadersRouter } from "./routes/leaders";
 import homeRouter from "./routes/home";
 import { userRouter } from "./routes/user";
-import './authenticate';
 import { config } from "../config";
 
 const DBURL = config.mongoUrl;
@@ -26,7 +25,6 @@ const server = express();
 
 server.use(express.json());
 server.use(passport.initialize());
-server.use(passport.session());
 
 server.use('/users', userRouter);
 server.use('/dishes', dishRouter);

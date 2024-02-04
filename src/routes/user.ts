@@ -1,6 +1,6 @@
 import { Router } from "express";
 import passport from "passport";
-import { getToken } from "../authenticate";
+import { getToken, localAuth, verifyUser } from "../authenticate";
 const User = require('../models/user');
 
 export const userRouter = Router()
@@ -39,7 +39,7 @@ userRouter.post('/signup', async (req, res, next) => {
     });
 });
 
-userRouter.post('/login', passport.authenticate('local'), (req, res) => {
+userRouter.post('/login', localAuth , (req, res) => {
   // @ts-ignore
   const token = getToken({_id: req?.user._id});
   res.statusCode = 200;
