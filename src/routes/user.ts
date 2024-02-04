@@ -1,6 +1,6 @@
 import { Router } from "express";
 import passport from "passport";
-import { getToken, localAuth, verifyUser } from "../authenticate";
+import { getToken, localAuth } from "../authenticate";
 const User = require('../models/user');
 
 export const userRouter = Router()

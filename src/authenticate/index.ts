@@ -30,20 +30,19 @@ export const jwtPassport = passport.use(new JWTStrategy({
     jwtFromRequest,
     secretOrKey
 },
-    (jwt_payload, done) => {
+    async (jwt_payload, done) => {
         console.log("JWT payload: ", jwt_payload);
-        // @ts-ignore
-        User.findOne({_id: jwt_payload._id}, (err, user) => {
-            if (err) {
-                return done(err, false);
-            }
-            else if (user) {
+        try {
+            const user = await User.findOne({_id: jwt_payload._id});
+            if (user) {
                 return done(null, user);
             }
             else {
                 return done(null, false);
             }
-        });
+        } catch(error) {
+             return done(error, false);
+        }
     }));
 
 export const localAuth = passport.authenticate('local', { session: false });
