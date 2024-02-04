@@ -27,11 +27,11 @@ const server = express();
 server.use(express.json());
 server.use(passport.initialize());
 
-server.use('/', homeRouter);
 server.use('/users', userRouter);
 server.use('/dishes', dishRouter);
 server.use('/promotions', promotionsRouter);
 server.use('/leaders', leadersRouter);
+server.use('/', homeRouter);
 
 server.route("*").get((req, res) => {
   res.send("404");

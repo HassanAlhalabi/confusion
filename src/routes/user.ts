@@ -1,37 +1,40 @@
 import { Router } from "express";
 import passport from "passport";
 import { getToken } from "../authenticate";
+const User = require('../models/user');
 
 export const userRouter = Router()
 
-userRouter.post('/signup', (req, res, next) => {
+userRouter.post('/signup', async (req, res, next) => {
   User.register(new User({ username: req.body.username }),
   // @ts-ignore
-    req.body.password, (err, user) => {
+    req.body.password, async (err, user) => {
       if (err) {
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json');
         res.json({ err: err });
+        return next()
       }
       else {
         if (req.body.firstname)
           user.firstname = req.body.firstname;
         if (req.body.lastname)
           user.lastname = req.body.lastname;
-        // @ts-ignore
-        user.save((err, user) => {
-          if (err) {
-            res.statusCode = 500;
-            res.setHeader('Content-Type', 'application/json');
-            res.json({ err: err });
-            return;
-          }
+        try {
+          await user.save();
           passport.authenticate('local')(req, res, () => {
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
             res.json({ success: true, status: 'Registration Successful!' });
           });
-        });
+          return next()
+        } catch(error) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json');
+          res.json({ err: error });
+          return next()
+        }
+
       }
     });
 });
