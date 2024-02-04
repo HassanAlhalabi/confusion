@@ -3,8 +3,9 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import passport from 'passport';
 
 import { config } from '../../config';
+import { ObjectId } from 'mongoose';
 
-export const getToken = function(user) {
+export const getToken = function(user: {_id: ObjectId}) {
     return sign(user, config.secretKey,
         {expiresIn: 3600});
 };
@@ -18,6 +19,7 @@ export const jwtPassport = passport.use(new Strategy({
 },
     (jwt_payload, done) => {
         console.log("JWT payload: ", jwt_payload);
+        // @ts-ignore
         User.findOne({_id: jwt_payload._id}, (err, user) => {
             if (err) {
                 return done(err, false);

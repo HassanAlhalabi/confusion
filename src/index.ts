@@ -1,4 +1,4 @@
-import express, { RequestHandler } from "express";
+import express from "express";
 import mongoose from "mongoose";
 import 'dotenv/config';
 import passport from "passport";
@@ -9,8 +9,9 @@ import { leadersRouter } from "./routes/leaders";
 import homeRouter from "./routes/home";
 import { userRouter } from "./routes/user";
 import './authenticate';
+import { config } from "../config";
 
-const DBURL = "mongodb://127.0.0.1:27017/confusion";
+const DBURL = config.mongoUrl;
 const PORT = 5000;
 
   // Connect to database
@@ -25,21 +26,6 @@ const server = express();
 
 server.use(express.json());
 server.use(passport.initialize());
-
-const auth: RequestHandler = (req, res, next) => {
-    console.log(req.user);
-    if (!req.user) {
-      const err = new Error('You are not authenticated!');
-      // @ts-ignore
-      err.status = 403;
-      next(err);
-    }
-    else {
-      next();
-    }
-}
-
-server.use(auth)
 
 server.use('/', homeRouter);
 server.use('/users', userRouter);

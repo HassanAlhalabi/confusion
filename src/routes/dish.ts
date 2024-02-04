@@ -2,6 +2,7 @@ import { Router } from "express";
 import Dish from "../models/dish";
 import { StatusCodes } from "http-status-codes";
 import { MongooseError } from "mongoose";
+import { verifyUser } from "../authenticate";
 
 export const dishRouter = Router();
 
@@ -17,7 +18,7 @@ dishRouter
       return res.json({ success: false });
     }
   })
-  .post(async (req, res) => {
+  .post(verifyUser, async (req, res) => {
     try {
       const newDish = req.body;
       await Dish.create(newDish);
@@ -29,11 +30,11 @@ dishRouter
       return res.json({ success: false, error: mongooseError.message});
     }
   })
-  .put(async (req, res) => {
+  .put(verifyUser, async (req, res) => {
     res.statusCode = StatusCodes.FORBIDDEN;
     return res.end("PUT operation not supported for dishes");
   })
-  .delete(async (req, res) => {
+  .delete(verifyUser, async (req, res) => {
     res.statusCode = StatusCodes.FORBIDDEN;
     return res.end("DELETE operation not supported for dishes");
   });
@@ -51,11 +52,11 @@ dishRouter
       return res.json({ success: false, error: mongooseError.message });
     }
   })
-  .put(async (req, res) => {
+  .put(verifyUser, async (req, res) => {
     res.statusCode = StatusCodes.FORBIDDEN;
     return res.end("PUT operation not supported for dishes");
   })
-  .delete(async (req, res) => {
+  .delete(verifyUser, async (req, res) => {
     res.statusCode = StatusCodes.FORBIDDEN;
     return res.end("DELETE operation not supported for dishes");
   });
@@ -72,7 +73,7 @@ dishRouter
       return res.json({ success: false });
     }
   })
-  .post(async (req, res) => {
+  .post(verifyUser, async (req, res) => {
     try {
       const newComment = req.body;
       await Dish.findByIdAndUpdate(req.params.dishId,{
@@ -91,11 +92,11 @@ dishRouter
       return res.json({ success: false, error: mongooseError.message });
     }
   })
-  .put(async (req, res) => {
+  .put(verifyUser, async (req, res) => {
     res.statusCode = StatusCodes.FORBIDDEN;
     return res.end("PUT operation not supported for comments");
   })
-  .delete(async (req, res) => {
+  .delete(verifyUser, async (req, res) => {
     res.statusCode = StatusCodes.FORBIDDEN;
     return res.end("DELETE operation not supported for Comments");
   });
@@ -114,7 +115,7 @@ dishRouter
       return res.json({ success: false, message: mongooseError.message });
     }
   })
-  .post(async (req, res) => {
+  .post(verifyUser, async (req, res) => {
     try {
       const newDish = req.body;
       await Dish.create(newDish);
@@ -125,14 +126,16 @@ dishRouter
       return res.json({ success: false });
     }
   })
-  .put(async (req, res, next) => {
+  .put(verifyUser, async (req, res, next) => {
    Dish.findById(req.params.dishId)
     .then((dish) => {
         if (dish != null && dish.comments.id(req.params.commentId) != null) {
             if (req.body.rating) {
+              // @ts-ignore
                 dish.comments.id(req.params.commentId).rating = req.body.rating;
             }
             if (req.body.comment) {
+              // @ts-ignore
                 dish.comments.id(req.params.commentId).comment = req.body.comment;                
             }
         dish.save()
@@ -157,11 +160,12 @@ dishRouter
     }, (err) => next(err))
     .catch((err) => next(err));
   })
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(verifyUser, (req, res, next) => {
     Dish.findById(req.params.dishId)
     .then((dish) => {
         if (dish != null && dish.comments.id(req.params.commentId) != null) {
 
+          // @ts-ignore
             dish.comments.id(req.params.commentId).remove();
             dish.save()
             .then((dish) => {
