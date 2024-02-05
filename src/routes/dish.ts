@@ -130,31 +130,32 @@ dishRouter
    Dish.findById(req.params.dishId).populate('comments.author')
     .then((dish) => {
       if (dish != null && dish.comments.id(req.params.commentId) != null) {
-          // Check if the dish is users dish
-                    // @ts-ignore
-          console.log(dish.comments.id(req.params.commentId));        
+        // Check if the dish is users dish   
+        // @ts-ignore
+        if(dish.comments.id(req.params.commentId).author.username !== req.user.username) {
+          res.statusCode = 401;
+          res.setHeader('Content-Type', 'application/json');
+          res.json({err: "Not Your Comment"});  
+          return next()
+        }
+        if (req.body.rating) {
           // @ts-ignore
-          if(dish.comments.id(req.params.commentId).author !== req.user.username) {
-            return next(new Error('Not Your Comment'))
-          }
-          if (req.body.rating) {
-            // @ts-ignore
-              dish.comments.id(req.params.commentId).rating = req.body.rating;
-          }
-          if (req.body.comment) {
-            // @ts-ignore
-              dish.comments.id(req.params.commentId).comment = req.body.comment;                
-          }
+            dish.comments.id(req.params.commentId).rating = req.body.rating;
+        }
+        if (req.body.comment) {
+          // @ts-ignore
+            dish.comments.id(req.params.commentId).comment = req.body.comment;                
+        }
       dish.save()
-      .then((dish) => {
-          Dish.findById(dish._id)
-          .populate('comments.author')
-          .then((dish) => {
-              res.statusCode = 200;
-              res.setHeader('Content-Type', 'application/json');
-              res.json(dish);  
-          })              
-      }, (err) => next(err));
+        .then((dish) => {
+            Dish.findById(dish._id)
+            .populate('comments.author')
+            .then((dish) => {
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                res.json(dish);  
+            })              
+        }, (err) => next(err));
       }
       else if (dish == null) {
           res.statusCode = 404;
